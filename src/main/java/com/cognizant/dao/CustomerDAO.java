@@ -4,6 +4,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.springframework.stereotype.Component;
 
@@ -24,8 +25,9 @@ public class CustomerDAO {
 	@GET
 	@Path("/find")
 	@Produces(MediaType.APPLICATION_XML)
-	public Customer getCustomer() {
-		return customerServiceRestAdapter.findCustomerById(1l);
+	public Response getCustomer() {
+		Customer customer = customerServiceRestAdapter.findCustomerById(1l);
+		return Response.status(200).entity(customer).build();
 	}
 
 

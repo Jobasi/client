@@ -20,7 +20,7 @@
 
   <servlet>
     <servlet-name>CustomerDAO</servlet-name>
-    <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+    <servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
     <init-param>
         <param-name>jersey.config.server.provider.packages</param-name>
         <param-value>com.cognizant.dao</param-value>
