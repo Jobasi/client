@@ -2,6 +2,8 @@ package com.cognizant.domain;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.cognizant.helper.CustomerBuilder;
+
 @XmlRootElement
 public class Customer {
 	private Long id;
@@ -9,6 +11,19 @@ public class Customer {
 	private String lastName;
 	private String email;
 	private Long phoneNumber;
+	
+	public Customer(){
+        super();
+    }
+
+    public Customer(CustomerBuilder customerBuilder) {
+        super();
+        this.firstName = customerBuilder.getFirstName();
+        this.lastName = customerBuilder.getLastName();
+        this.email = customerBuilder.getEmail();
+        this.phoneNumber = customerBuilder.getPhoneNumber();
+    }
+	
 	public Long getId() {
 		return id;
 	}
