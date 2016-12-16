@@ -13,12 +13,14 @@ import org.springframework.stereotype.Component;
 
 import com.cognizant.adapter.CustomerServiceRestAdapter;
 import com.cognizant.domain.Customer;
+import com.cognizant.helper.CustomerList;
 
 
 @Component
 @Path(value="/customer")
 public class CustomerDAO {
 	
+	private static final int BAD_REQUEST = 400;
 	private CustomerServiceRestAdapter customerServiceRestAdapter;	
 	
 	public void setCustomerServiceRestAdapter(CustomerServiceRestAdapter customerServiceRestAdapter) {
@@ -38,9 +40,25 @@ public class CustomerDAO {
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
 	public Response createCustomer(JAXBElement<Customer> customer) {
-		customerServiceRestAdapter.saveCustomer(customer);
+		Customer customer2 = customerServiceRestAdapter.saveCustomer(customer);
+		if (customer2.getFirstName() == null 
+				||
+				customer2.getFirstName().trim().isEmpty() 
+				||  
+				customer2.getEmail().trim().isEmpty() 
+				||
+				customer2.getEmail() == null ){
+			return Response.status(BAD_REQUEST).build();
+		}
 		return Response.status(201).entity(customer).build();
 	}
 
+	@GET
+	@Path(value="/list")
+	@Produces(MediaType.APPLICATION_XML)
+	public CustomerList getAllCustomers(){	
+		return customerServiceRestAdapter.fetchAllCustomers();
+	}
+	
 
 }

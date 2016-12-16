@@ -32,6 +32,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import com.cognizant.domain.Customer;
 import com.cognizant.helper.CustomerBuilder;
+import com.cognizant.helper.CustomerList;
 import com.mce.contracts.CustomerServiceInterface;
 
 
@@ -73,18 +74,49 @@ public class CustomerServiceRestAdapter implements CustomerServiceInterface {
 		
 	}
 
-	public List<Customer> fetchAllCustomers() {
-		// TODO Auto-generated method stub
-		return null;
+	public CustomerList fetchAllCustomers() {
+		CustomerList customer = new CustomerList();
+		BufferedReader br;
+		try {
+			URL url = new URL(String.format("%s/list", baseUrl));
+			HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+			httpConnection.setRequestMethod("GET");
+			httpConnection.setRequestProperty("Accept", "application/xml");
+			
+			if (httpConnection.getResponseCode() != 200) {
+				throw new RuntimeException("Failed : HTTP error code : "
+						+ httpConnection.getResponseCode());			
+			}
+			br = new BufferedReader(new InputStreamReader(
+					(httpConnection.getInputStream())));
+			
+			String xmlString = br.readLine();  
+			
+			JAXBContext jaxbContext = JAXBContext.newInstance(CustomerList.class);
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
+			StringReader reader = new StringReader(xmlString);
+			 customer = (CustomerList) unmarshaller.unmarshal(reader);		
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+		return customer;
+		
 	}
 
 	public Customer saveCustomer(JAXBElement<Customer> customer) {
 		Customer c = customer.getValue();
-		Customer cus =  new CustomerBuilder(c.getFirstName(), c.getLastName())
-							.withEmail(c.getEmail())
-							.withPhone(c.getPhoneNumber())
-							.build();
-		
+		Customer cus = new Customer();
+		try {
+			cus = new CustomerBuilder(c.getFirstName(), c.getLastName())
+								.withEmail(c.getEmail())
+								.withPhone(c.getPhoneNumber())
+								.build();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return cus;
+		}
 		BufferedReader bufferedReader;
 
 		
@@ -123,10 +155,6 @@ public class CustomerServiceRestAdapter implements CustomerServiceInterface {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		    
-		   
-		
-		
 		return cus;
 	}
 

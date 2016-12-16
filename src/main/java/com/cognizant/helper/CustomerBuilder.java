@@ -9,14 +9,12 @@ public class CustomerBuilder {
     private long phoneNumber;
 
 
-    public CustomerBuilder(String firstName, String lastName) {
-    	try{
-    		if((firstName == null) && (lastName == null) ){
+    public CustomerBuilder(String firstName, String lastName) throws Exception {
+    	
+    		if((firstName == null|| firstName.trim().isEmpty()) || (lastName == null || lastName.trim().isEmpty()) ){
         		throw new Exception();
         	}
-    	}catch(Exception e){
-    		e.printStackTrace();
-    	}
+    
     	this.firstName = firstName;
         this.lastName = lastName;
         
