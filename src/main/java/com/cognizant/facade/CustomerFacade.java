@@ -31,8 +31,7 @@ public class CustomerFacade {
 	@Path("/find")
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getCustomer() {
-		Customer customer = customerServiceRestAdapter.findCustomerById(1l);
-		return Response.status(200).entity(customer).build();
+		return customerServiceRestAdapter.findCustomerById(1l);
 	}
 	
 	@POST
@@ -40,23 +39,13 @@ public class CustomerFacade {
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
 	public Response createCustomer(JAXBElement<Customer> customer) {
-		Customer customer2 = customerServiceRestAdapter.saveCustomer(customer);
-		if (customer2.getFirstName() == null 
-				||
-				customer2.getFirstName().trim().isEmpty() 
-				||  
-				customer2.getEmail().trim().isEmpty() 
-				||
-				customer2.getEmail() == null ){
-			return Response.status(BAD_REQUEST).build();
-		}
-		return Response.status(201).entity(customer).build();
+		return customerServiceRestAdapter.saveCustomer(customer);
 	}
 
 	@GET
 	@Path(value="/list")
 	@Produces(MediaType.APPLICATION_XML)
-	public CustomerList getAllCustomers(){	
+	public Response getAllCustomers(){	
 		return customerServiceRestAdapter.fetchAllCustomers();
 	}
 	

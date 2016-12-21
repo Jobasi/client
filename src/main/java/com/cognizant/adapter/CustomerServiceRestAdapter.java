@@ -9,26 +9,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 
 import com.cognizant.domain.Customer;
 import com.cognizant.helper.CustomerBuilder;
@@ -41,7 +31,7 @@ public class CustomerServiceRestAdapter extends BaseClass implements CustomerSer
 	private final String USER_AGENT = "Client/1.0";
 	
 
-	public Customer findCustomerById(Long id) {
+	public Response findCustomerById(Long id) {
 		Customer customer  = new Customer();
 		BufferedReader br;
 		
@@ -90,11 +80,11 @@ public class CustomerServiceRestAdapter extends BaseClass implements CustomerSer
 		}
 		
 	
-		return customer;
+		return Response.status(200).entity(customer).build();
 		
 	}
 
-	public CustomerList fetchAllCustomers() {
+	public Response fetchAllCustomers() {
 		CustomerList customer = new CustomerList();
 		BufferedReader br;
 		try {
@@ -107,23 +97,13 @@ public class CustomerServiceRestAdapter extends BaseClass implements CustomerSer
 				if (httpConnection.getResponseCode() == s.getCode()) {
 					switch(s){
 					case OK:
-						throw new RuntimeException("Failed : HTTP error code : "
-								+ httpConnection.getResponseCode() + " " + s);	
-					case Created:
-						throw new RuntimeException("Failed : HTTP error code : "
-								+ httpConnection.getResponseCode() + " " + s);
-					case BadRequest:
-						throw new RuntimeException("Failed : HTTP error code : "
-								+ httpConnection.getResponseCode() + " " + s);
+						break;
 					case NotFound:
-						throw new RuntimeException("Failed : HTTP error code : "
-								+ httpConnection.getResponseCode() + " " + s);
+						return Response.status(Status.NOT_FOUND).build();
 					case InternalServerError:
-						throw new RuntimeException("Failed : HTTP error code : "
-								+ httpConnection.getResponseCode() + " " + s);
+						return Response.status(500).build();
 					default :
-						throw new RuntimeException("Failed : HTTP error code : "
-								+ httpConnection.getResponseCode() + " " + s);	
+						break;
 					}			
 			}
 			br = new BufferedReader(new InputStreamReader(
@@ -139,23 +119,17 @@ public class CustomerServiceRestAdapter extends BaseClass implements CustomerSer
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
-		return customer;
+		return Response.status(200).entity(customer).build();
 		
 	}
 
-	public Customer saveCustomer(JAXBElement<Customer> customer) {
+	public Response saveCustomer(JAXBElement<Customer> customer) {
 		Customer c = customer.getValue();
 		Customer cus = new Customer();
-		try {
-			cus = new CustomerBuilder(c.getFirstName(), c.getLastName())
-								.withEmail(c.getEmail())
-								.withPhone(c.getPhoneNumber())
-								.build();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			return cus;
-		}
+		cus = new CustomerBuilder(c.getFirstName(), c.getLastName())
+				.withEmail(c.getEmail())
+				.withPhone(c.getPhoneNumber())
+				.build();
 		BufferedReader bufferedReader;
 
 		
@@ -194,17 +168,18 @@ public class CustomerServiceRestAdapter extends BaseClass implements CustomerSer
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return cus;
+		
+		return Response.status(200).entity(cus).build();
 	}
 
-	public Long deleteCustomer(Customer customer) {
+	public Response deleteCustomer(Customer customer) {
 		// TODO Auto-generated method stub
-		return null;
+		return Response.status(200).build();
 	}
 
-	public Customer updateCustomer(Customer customer) {
+	public Response updateCustomer(Customer customer) {
 		// TODO Auto-generated method stub
-		return null;
+		return Response.status(200).build();
 	}
 
 }

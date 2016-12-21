@@ -1,5 +1,6 @@
 package com.mce.contracts;
 
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBElement;
 
 import com.cognizant.domain.Customer;
@@ -12,10 +13,10 @@ import com.cognizant.helper.CustomerList;
 
 public interface CustomerServiceInterface {
 	
-	Customer findCustomerById(Long id) throws CustomerNotFoundException;
-	CustomerList fetchAllCustomers() throws CustomerNotFetchedException;
-	Customer saveCustomer(JAXBElement<Customer> customer) throws CustomerNotSavedException;
-	Long deleteCustomer(Customer customer) throws CustomerNotDeletedException;
-	Customer updateCustomer(Customer customer) throws CustomerNotUpdatedException;
+	Response findCustomerById(Long id) throws CustomerNotFoundException;
+	Response fetchAllCustomers() throws CustomerNotFetchedException;
+	Response saveCustomer(JAXBElement<Customer> customer) throws CustomerNotSavedException;
+	Response deleteCustomer(Customer customer) throws CustomerNotDeletedException;
+	Response updateCustomer(Customer customer) throws CustomerNotUpdatedException;
 
 }
