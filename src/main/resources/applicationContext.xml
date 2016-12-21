@@ -9,7 +9,7 @@
 	
 	<bean id="CustomerServiceRestAdapter" class="com.cognizant.adapter.CustomerServiceRestAdapter"></bean>
 	
-	<bean id="CustomerDAO" class="com.cognizant.dao.CustomerDAO">
+	<bean id="CustomerFacade" class="com.cognizant.facade.CustomerFacade">
 		<property name="customerServiceRestAdapter">
 			<ref bean="CustomerServiceRestAdapter" />
 		</property>

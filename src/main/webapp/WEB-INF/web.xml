@@ -19,17 +19,17 @@
   
 
   <servlet>
-    <servlet-name>CustomerDAO</servlet-name>
+    <servlet-name>CustomerFacade</servlet-name>
     <servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
     <init-param>
         <param-name>jersey.config.server.provider.packages</param-name>
-        <param-value>com.cognizant.dao</param-value>
+        <param-value>com.cognizant.facade</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
   
   <servlet-mapping>
-    <servlet-name>CustomerDAO</servlet-name>
+    <servlet-name>CustomerFacade</servlet-name>
     <url-pattern>/api/*</url-pattern>
   </servlet-mapping>
   

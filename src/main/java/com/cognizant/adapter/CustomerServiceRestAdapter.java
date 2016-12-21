@@ -36,7 +36,7 @@ import com.cognizant.helper.CustomerList;
 import com.mce.contracts.CustomerServiceInterface;
 
 
-public class CustomerServiceRestAdapter implements CustomerServiceInterface {
+public class CustomerServiceRestAdapter extends BaseClass implements CustomerServiceInterface {
 	private final String baseUrl = "http://localhost:8080/server/api/customer";
 	private final String USER_AGENT = "Client/1.0";
 	
@@ -51,9 +51,29 @@ public class CustomerServiceRestAdapter implements CustomerServiceInterface {
 			httpConnection.setRequestMethod("GET");
 			httpConnection.setRequestProperty("Accept", "application/xml");
 			
-			if (httpConnection.getResponseCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : "
-						+ httpConnection.getResponseCode());			
+			for (StatusCode s : StatusCode.values())			
+			if (httpConnection.getResponseCode() == s.getCode()) {
+				switch(s){
+				case OK:
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpConnection.getResponseCode() + " " + s);	
+				case Created:
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpConnection.getResponseCode() + " " + s);
+				case BadRequest:
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpConnection.getResponseCode() + " " + s);
+				case NotFound:
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpConnection.getResponseCode() + " " + s);
+				case InternalServerError:
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpConnection.getResponseCode() + " " + s);
+				default :
+					throw new RuntimeException("Failed : HTTP error code : "
+							+ httpConnection.getResponseCode() + " " + s);	
+				}
+			
 			}
 			br = new BufferedReader(new InputStreamReader(
 					(httpConnection.getInputStream())));
@@ -83,9 +103,28 @@ public class CustomerServiceRestAdapter implements CustomerServiceInterface {
 			httpConnection.setRequestMethod("GET");
 			httpConnection.setRequestProperty("Accept", "application/xml");
 			
-			if (httpConnection.getResponseCode() != 200) {
-				throw new RuntimeException("Failed : HTTP error code : "
-						+ httpConnection.getResponseCode());			
+			for (StatusCode s : StatusCode.values())			
+				if (httpConnection.getResponseCode() == s.getCode()) {
+					switch(s){
+					case OK:
+						throw new RuntimeException("Failed : HTTP error code : "
+								+ httpConnection.getResponseCode() + " " + s);	
+					case Created:
+						throw new RuntimeException("Failed : HTTP error code : "
+								+ httpConnection.getResponseCode() + " " + s);
+					case BadRequest:
+						throw new RuntimeException("Failed : HTTP error code : "
+								+ httpConnection.getResponseCode() + " " + s);
+					case NotFound:
+						throw new RuntimeException("Failed : HTTP error code : "
+								+ httpConnection.getResponseCode() + " " + s);
+					case InternalServerError:
+						throw new RuntimeException("Failed : HTTP error code : "
+								+ httpConnection.getResponseCode() + " " + s);
+					default :
+						throw new RuntimeException("Failed : HTTP error code : "
+								+ httpConnection.getResponseCode() + " " + s);	
+					}			
 			}
 			br = new BufferedReader(new InputStreamReader(
 					(httpConnection.getInputStream())));

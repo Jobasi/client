@@ -1,4 +1,4 @@
-package com.cognizant.dao;
+package com.cognizant.facade;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -18,7 +18,7 @@ import com.cognizant.helper.CustomerList;
 
 @Component
 @Path(value="/customer")
-public class CustomerDAO {
+public class CustomerFacade {
 	
 	private static final int BAD_REQUEST = 400;
 	private CustomerServiceRestAdapter customerServiceRestAdapter;	
