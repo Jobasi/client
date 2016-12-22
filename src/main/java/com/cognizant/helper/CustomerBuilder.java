@@ -1,6 +1,6 @@
 package com.cognizant.helper;
 
-import com.cognizant.domain.Customer;
+import com.cognizant.entity.Customer;
 
 public class CustomerBuilder {
 	private final String firstName;

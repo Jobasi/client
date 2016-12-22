@@ -3,7 +3,6 @@ package com.cognizant.adapter;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -12,15 +11,14 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import com.cognizant.domain.Customer;
+import com.cognizant.entity.Customer;
+import com.cognizant.helper.BaseResponse;
 import com.cognizant.helper.CustomerBuilder;
 import com.cognizant.helper.CustomerList;
 import com.mce.contracts.CustomerServiceInterface;
@@ -28,25 +26,22 @@ import com.mce.contracts.CustomerServiceInterface;
 
 public class CustomerServiceRestAdapter extends BaseClass implements CustomerServiceInterface {
 	private final String baseUrl = "http://localhost:8080/server/api/customer";
-	private final String USER_AGENT = "Client/1.0";
 	
 
-	public Response findCustomerById(Long id) {
+	public BaseResponse findCustomerById(Long id) {
 		Customer customer  = new Customer();
 		BufferedReader br;
 		
 		try {
-			URL url = new URL(String.format("%s/find", baseUrl));
+			URL url = new URL(String.format("%s/find/%d", baseUrl, id));
 			HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
 			httpConnection.setRequestMethod("GET");
 			httpConnection.setRequestProperty("Accept", "application/xml");
-			
 			for (StatusCode s : StatusCode.values())			
 			if (httpConnection.getResponseCode() == s.getCode()) {
 				switch(s){
 				case OK:
-					throw new RuntimeException("Failed : HTTP error code : "
-							+ httpConnection.getResponseCode() + " " + s);	
+					break;
 				case Created:
 					throw new RuntimeException("Failed : HTTP error code : "
 							+ httpConnection.getResponseCode() + " " + s);
@@ -79,51 +74,71 @@ public class CustomerServiceRestAdapter extends BaseClass implements CustomerSer
 			System.err.println(e.getMessage());
 		}
 		
-	
-		return Response.status(200).entity(customer).build();
 		
+		return new BaseResponse(customer, 200);
+				
 	}
 
-	public Response fetchAllCustomers() {
-		CustomerList customer = new CustomerList();
-		BufferedReader br;
+
+	private HttpURLConnection makeGetRequest(String urlString){
+		HttpURLConnection httpConnection = null;
 		try {
-			URL url = new URL(String.format("%s/list", baseUrl));
-			HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+			URL url = new URL(urlString);
+			httpConnection = (HttpURLConnection) url.openConnection();
 			httpConnection.setRequestMethod("GET");
 			httpConnection.setRequestProperty("Accept", "application/xml");
-			
-			for (StatusCode s : StatusCode.values())			
-				if (httpConnection.getResponseCode() == s.getCode()) {
-					switch(s){
-					case OK:
-						break;
-					case NotFound:
-						return Response.status(Status.NOT_FOUND).build();
-					case InternalServerError:
-						return Response.status(500).build();
-					default :
-						break;
-					}			
-			}
-			br = new BufferedReader(new InputStreamReader(
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return httpConnection;
+	}
+	
+	private CustomerList getAllCustomers(HttpURLConnection httpConnection){
+		CustomerList customer = new CustomerList();
+		BufferedReader bufferedReader;
+		try {
+			bufferedReader = new BufferedReader(new InputStreamReader(
 					(httpConnection.getInputStream())));
-			
-			String xmlString = br.readLine();  
-			
+			String xmlString = bufferedReader.readLine(); 
 			JAXBContext jaxbContext = JAXBContext.newInstance(CustomerList.class);
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
 			StringReader reader = new StringReader(xmlString);
-			 customer = (CustomerList) unmarshaller.unmarshal(reader);		
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
+			customer = (CustomerList) unmarshaller.unmarshal(reader);
+		} catch (IOException | JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return Response.status(200).entity(customer).build();
 		
+		return customer;
+	}
+	public BaseResponse fetchAllCustomers() {
+		
+		String url = String.format("%s/list", baseUrl);
+		HttpURLConnection httpConnection = makeGetRequest(url);
+		
+		for (StatusCode s : StatusCode.values())	{		
+			try {
+				if (httpConnection.getResponseCode() == s.getCode()) {
+					switch(s){
+					case OK:
+						return new BaseResponse(getAllCustomers(httpConnection), 200);
+					case NotFound:
+						return new BaseResponse(404);
+					case InternalServerError:
+						return new BaseResponse(500);
+					default :
+						break;
+						}			
+					}
+			} catch (IOException e) {
+			e.printStackTrace();
+			}
+			}
+		return new BaseResponse(500);
 	}
 
-	public Response saveCustomer(JAXBElement<Customer> customer) {
+	public BaseResponse saveCustomer(JAXBElement<Customer> customer) {
 		Customer c = customer.getValue();
 		Customer cus = new Customer();
 		cus = new CustomerBuilder(c.getFirstName(), c.getLastName())
@@ -169,17 +184,17 @@ public class CustomerServiceRestAdapter extends BaseClass implements CustomerSer
 			e.printStackTrace();
 		}
 		
-		return Response.status(200).entity(cus).build();
+		return new BaseResponse(cus, 200);
 	}
 
-	public Response deleteCustomer(Customer customer) {
+	public BaseResponse deleteCustomer(Customer customer) {
 		// TODO Auto-generated method stub
-		return Response.status(200).build();
+		return new BaseResponse(200);
 	}
 
-	public Response updateCustomer(Customer customer) {
+	public BaseResponse updateCustomer(Customer customer) {
 		// TODO Auto-generated method stub
-		return Response.status(200).build();
+		return new BaseResponse(200);
 	}
 
 }
