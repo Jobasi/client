@@ -1,12 +1,9 @@
 package com.cognizant.helper;
 
-public enum StatusCode {
-	   OK(200),Created(201),BadRequest(400),NotFound(404),InternalServerError(500);
-	   private int code;
-	   StatusCode(int p) {
-	      code = p;
-	   }
-	   int getCode() {
-	      return code;
-	   } 
-	}
+public class StatusCode {
+   public static final int OK = 200; 
+   public static final int CREATED = 201;
+   public static final int BAD_REQUEST = 400;
+   public static final int NOT_FOUND = 404;
+   public static final int INTERNAL_SERVER_ERROR = 500; 
+}

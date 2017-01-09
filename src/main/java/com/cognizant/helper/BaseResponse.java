@@ -7,6 +7,9 @@ public class BaseResponse {
 	private Customer customer;
 	private int statusCode;
 	
+	public BaseResponse() {
+		// TODO Auto-generated constructor stub
+	}
 	
 	
 	public BaseResponse( Customer customer, int statusCode) {
