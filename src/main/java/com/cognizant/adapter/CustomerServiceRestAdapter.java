@@ -22,9 +22,11 @@ import javax.xml.bind.Unmarshaller;
 import com.cognizant.entity.Customer;
 import com.cognizant.exceptions.CustomerNotFoundException;
 import com.cognizant.exceptions.CustomerNotSavedException;
+import com.cognizant.exceptions.CustomerNotUpdatedException;
 import com.cognizant.helper.BaseResponse;
 import com.cognizant.helper.CustomerBuilder;
 import com.cognizant.helper.CustomerList;
+import com.cognizant.helper.StatusCode;
 import com.mce.contracts.CustomerServiceInterface;
 
 
@@ -151,8 +153,42 @@ public class CustomerServiceRestAdapter {
 		return new Customer();
 	}
 
-	public Customer updateCustomer(Customer customer) {
-		// TODO Auto-generated method stub
-		return new Customer();
+	public Customer updateCustomer(Customer customer) throws IOException, CustomerNotUpdatedException {
+		
+		HttpURLConnection httpConnection = makeRestCall("update", "PUT"); 
+		if (httpConnection.getResponseCode() == StatusCode.BAD_REQUEST){
+			throw new CustomerNotUpdatedException();
+		}
+		Customer customer2 = new Customer();
+		BufferedReader bufferedReader = null;
+		try {
+			StringWriter stringWriter = new StringWriter();
+		    JAXBContext jaxbContext = JAXBContext.newInstance(Customer.class);
+		    Marshaller marshaller = jaxbContext.createMarshaller();
+		    marshaller.marshal(customer, stringWriter);
+		    String xmlString = stringWriter.toString();
+		   
+		    OutputStream output = new BufferedOutputStream(httpConnection.getOutputStream());
+		    output.write(xmlString.getBytes());
+		    output.flush();
+		    
+		    bufferedReader = new BufferedReader(new InputStreamReader(
+					(httpConnection.getInputStream())));
+			
+			String xmlStringResponse = bufferedReader.readLine();  
+			
+			JAXBContext jaxbContextResponse = JAXBContext.newInstance(Customer.class);
+			Unmarshaller unmarshaller = jaxbContextResponse.createUnmarshaller();
+
+			StringReader reader = new StringReader(xmlStringResponse);
+			 customer2 = (Customer) unmarshaller.unmarshal(reader);	
+		    
+		    
+			 httpConnection.disconnect();
+		} catch (Exception e) {
+			throw new RuntimeException();
+		}
+		
+		return customer2;
 		}
 	}
