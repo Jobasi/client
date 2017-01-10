@@ -1,8 +1,10 @@
 package com.cognizant.facade;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import com.cognizant.adapter.CustomerServiceRestAdapter;
 import com.cognizant.entity.Customer;
+import com.cognizant.exceptions.CustomerNotDeletedException;
 import com.cognizant.exceptions.CustomerNotFoundException;
 import com.cognizant.exceptions.CustomerNotSavedException;
 import com.cognizant.exceptions.CustomerNotUpdatedException;
@@ -75,18 +78,45 @@ public class CustomerFacade {
 	@Path(value="/update")
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
-	public CustomerResponse updateCustomer(JAXBElement<Customer> customerXML) throws IOException{
-		Customer customer = customerXML.getValue();
-		Customer customer2 = new Customer();
+	public CustomerResponse updateCustomer(JAXBElement<Customer> customer) throws IOException, MalformedURLException{
 		try {
-			customer2 =  customerServiceRestAdapter.updateCustomer(customer);
+			customerServiceRestAdapter.updateCustomer(customer.getValue());
 		} catch (CustomerNotUpdatedException e) {
 			return new CustomerResponse(StatusCode.BAD_REQUEST);
 		} catch (Exception e) {
 			return new CustomerResponse(StatusCode.INTERNAL_SERVER_ERROR);
 		}
-		return new CustomerResponse(customer2, StatusCode.OK);
+		return new CustomerResponse(customer.getValue(), StatusCode.OK);
 	}
+	
+	@DELETE
+	@Path(value="/delete/{id}")
+	@Produces(MediaType.APPLICATION_XML)
+	public CustomerResponse deleteCustomer(@PathParam(value = "id") Long id) throws IOException, MalformedURLException{
+		Customer customer = new Customer();
+		try {
+			customerServiceRestAdapter.deleteCustomer(id);
+		} catch (CustomerNotDeletedException e) {
+			return new CustomerResponse(StatusCode.BAD_REQUEST);
+		} catch (Exception e) {
+			return new CustomerResponse(StatusCode.INTERNAL_SERVER_ERROR);
+		}
+		return new CustomerResponse(customer, StatusCode.OK);
+	}
+	
+	@GET
+	@Path("/email/{id}")
+	@Produces(MediaType.APPLICATION_XML)
+	public CustomerResponse findByEmail(@PathParam(value = "email") String email) {
+		Customer customer = new Customer();
+	
+		try {
+			customer = customerServiceRestAdapter.findByEmail(email);
+		} catch (CustomerNotFoundException e) {
+			return new CustomerResponse(StatusCode.NOT_FOUND);		}
+		return new CustomerResponse(customer, StatusCode.OK  );
+	}
+	
 	
 	
 

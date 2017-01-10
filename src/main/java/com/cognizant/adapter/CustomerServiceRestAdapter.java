@@ -3,6 +3,7 @@ package com.cognizant.adapter;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -20,6 +21,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import com.cognizant.entity.Customer;
+import com.cognizant.exceptions.CustomerNotDeletedException;
 import com.cognizant.exceptions.CustomerNotFoundException;
 import com.cognizant.exceptions.CustomerNotSavedException;
 import com.cognizant.exceptions.CustomerNotUpdatedException;
@@ -35,18 +37,35 @@ public class CustomerServiceRestAdapter {
 	
 	private HttpURLConnection makeRestCall(String path, String method, Long id) throws IOException  {
 		URL url = new URL(String.format("%s/%s/%d", baseUrl, path, id));
+		System.out.println("Server Uri:  " + url.toString() + " was Triggred");
 		HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
 		httpConnection.setRequestMethod(method);
 		httpConnection.setRequestProperty("Accept", "application/xml");
+		httpConnection.setRequestProperty("Content-Type", "application/xml");
+		return httpConnection;
+	}
+	
+	private HttpURLConnection makeRestCall(String path, String method, String email) throws IOException  {
+		URL url = new URL(String.format("%s/%s/%s", baseUrl, path, email));
+		System.out.println("Server Uri:  " + url.toString() + " was Triggred");
+		HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+		httpConnection.setRequestMethod(method);
+		httpConnection.setRequestProperty("Accept", "application/xml");
+		httpConnection.setRequestProperty("Content-Type", "application/xml");
 		return httpConnection;
 	}
 	
 
-	private HttpURLConnection makeRestCall(String path, String method) throws IOException  {
-		URL url = new URL(String.format("%s/%s/", baseUrl, path));
+	private HttpURLConnection makeRestCall(String path, String method) throws IOException, MalformedURLException  {
+		URL url = new URL(String.format("%s/%s", baseUrl, path));
+		System.out.println("Server Uri:  " + url.toString() + " was Triggred");
+
 		HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
 		httpConnection.setRequestMethod(method);
 		httpConnection.setRequestProperty("Content-Type", "application/xml");
+		if(method.compareToIgnoreCase("PUT") == 0){
+	
+		}
 		httpConnection.setRequestProperty("Accept", "application/xml");
 		httpConnection.setDoInput(true);
 		httpConnection.setDoOutput(true);
@@ -148,32 +167,55 @@ public class CustomerServiceRestAdapter {
 	}
 
 
-	public Customer deleteCustomer(Customer customer) {
-		// TODO Auto-generated method stub
-		return new Customer();
+	public Customer deleteCustomer(Long id) throws CustomerNotDeletedException, IOException {
+		Customer customer = new Customer();
+		BufferedReader bufferedReader = null;
+		try{
+			HttpURLConnection httpConnection = makeRestCall("delete", "DELETE", id);
+			if(httpConnection.getResponseCode() == 404){
+				throw new CustomerNotDeletedException();
+			}
+			bufferedReader = new BufferedReader(new InputStreamReader(
+					(httpConnection.getInputStream())));
+			
+			String xmlString = bufferedReader.readLine();  
+			
+			JAXBContext jaxbContext = JAXBContext.newInstance(Customer.class);
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
+			StringReader reader = new StringReader(xmlString);
+			customer = (Customer) unmarshaller.unmarshal(reader);
+			
+			if (customer == null){
+				throw new CustomerNotDeletedException();
+			}
+			
+		} catch (RuntimeException | IOException | JAXBException e){
+			
+		}
+		return customer;
+		
+	
 	}
 
-	public Customer updateCustomer(Customer customer) throws IOException, CustomerNotUpdatedException {
+	public Customer updateCustomer(Customer customer) throws CustomerNotUpdatedException {
 		
-		HttpURLConnection httpConnection = makeRestCall("update", "PUT"); 
-		if (httpConnection.getResponseCode() == StatusCode.BAD_REQUEST){
-			throw new CustomerNotUpdatedException();
-		}
-		Customer customer2 = new Customer();
 		BufferedReader bufferedReader = null;
 		try {
-			StringWriter stringWriter = new StringWriter();
+			HttpURLConnection conn = makeRestCall("update", "PUT");
+			
+		    StringWriter stringWriter = new StringWriter();
 		    JAXBContext jaxbContext = JAXBContext.newInstance(Customer.class);
 		    Marshaller marshaller = jaxbContext.createMarshaller();
 		    marshaller.marshal(customer, stringWriter);
 		    String xmlString = stringWriter.toString();
 		   
-		    OutputStream output = new BufferedOutputStream(httpConnection.getOutputStream());
+		    OutputStream output = new BufferedOutputStream(conn.getOutputStream());
 		    output.write(xmlString.getBytes());
 		    output.flush();
 		    
 		    bufferedReader = new BufferedReader(new InputStreamReader(
-					(httpConnection.getInputStream())));
+					(conn.getInputStream())));
 			
 			String xmlStringResponse = bufferedReader.readLine();  
 			
@@ -181,14 +223,48 @@ public class CustomerServiceRestAdapter {
 			Unmarshaller unmarshaller = jaxbContextResponse.createUnmarshaller();
 
 			StringReader reader = new StringReader(xmlStringResponse);
-			 customer2 = (Customer) unmarshaller.unmarshal(reader);	
+			 customer = (Customer) unmarshaller.unmarshal(reader);	
 		    
 		    
-			 httpConnection.disconnect();
-		} catch (Exception e) {
-			throw new RuntimeException();
+		    conn.disconnect();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JAXBException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
-		return customer2;
-		}
+		return customer;
 	}
+	
+	public Customer findByEmail(String email) throws CustomerNotFoundException{
+		Customer customer = new Customer();
+		BufferedReader bufferedReader = null;
+		try{
+			HttpURLConnection httpConnection = makeRestCall("find", "GET", email);
+			if(httpConnection.getResponseCode() == 404){
+				throw new CustomerNotFoundException();
+			}
+			bufferedReader = new BufferedReader(new InputStreamReader(
+					(httpConnection.getInputStream())));
+			
+			String xmlString = bufferedReader.readLine();  
+			
+			JAXBContext jaxbContext = JAXBContext.newInstance(Customer.class);
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+
+			StringReader reader = new StringReader(xmlString);
+			customer = (Customer) unmarshaller.unmarshal(reader);
+			
+			if (customer == null){
+				throw new CustomerNotFoundException();
+			}
+			
+		} catch (RuntimeException | IOException | JAXBException e){
+			
+		}
+		return customer;
+	}
+}
