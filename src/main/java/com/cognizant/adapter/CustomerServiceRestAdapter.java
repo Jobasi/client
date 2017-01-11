@@ -63,9 +63,6 @@ public class CustomerServiceRestAdapter {
 		HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
 		httpConnection.setRequestMethod(method);
 		httpConnection.setRequestProperty("Content-Type", "application/xml");
-		if(method.compareToIgnoreCase("PUT") == 0){
-	
-		}
 		httpConnection.setRequestProperty("Accept", "application/xml");
 		httpConnection.setDoInput(true);
 		httpConnection.setDoOutput(true);
